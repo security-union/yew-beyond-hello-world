@@ -2,6 +2,8 @@ mod msg_ctx;
 
 use js_sys::Array;
 use js_sys::Boolean;
+use js_sys::JsString;
+use js_sys::Reflect;
 use msg_ctx::{MessageContext, MessageProvider};
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
@@ -46,9 +48,25 @@ fn video_reader() -> Html {
                 console::log_1(&device);
                 console::log_1(&video_element);
                 video_element.set_src_object(Some(&device));
-                let video_tracks = device
+                // Get 1 video track
+                let video_track = device
                     .get_video_tracks()
-                    .find(&mut |_: JsValue, _: u32, _: Array| true);
+                    .find(&mut |_: JsValue, _: u32, _: Array| true).unchecked_into::<VideoTrack>();
+
+                let processor = MediaStreamTrackProcessor::new(
+                    &MediaStreamTrackProcessorInit::new(&video_track.unchecked_into::<MediaStreamTrack>())
+                ).unwrap();
+                let reader = processor.readable().get_reader().unchecked_into::<ReadableStreamDefaultReader>();
+
+                wasm_bindgen_futures::spawn_local(async move {
+                    console::log_1(&JsString::from("before read"));
+                    let result = JsFuture::from(reader.read()).await.unwrap();
+                    console::log_1(&result);
+                    console::log_1(&JsString::from("after read"));
+                });
+                // let init = VideoEncoderInit::new();
+                // let video_encoder = VideoEncoder::new();
+                // video_track.
             });
             || ()
         },
