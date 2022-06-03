@@ -23,6 +23,9 @@ features = [
 	"MediaDevices", 
 	"console", 
 	"Document", 
+	"EncodedVideoChunk",	
+	"EncodedVideoChunkInit",
+	"EncodedVideoChunkMetadata",
 	"MediaStreamConstraints",
 	"MediaStreamTrack",
 	"MediaStreamTrackProcessor", 
@@ -34,6 +37,7 @@ features = [
 	"VideoEncoderInit",
 	"VideoTrack",
 	"VideoFrame",
+	"VideoEncoderConfig",
 	"ReadableStream",
 	"ReadableStreamGetReaderOptions",
 	"ReadableStreamDefaultReader"
