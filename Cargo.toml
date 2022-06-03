@@ -10,10 +10,11 @@ yew = "^0.19"
 yew-agent = "^0.1.0"
 js-sys = "0.3"
 wasm-bindgen-shared = "0.2.80"
-wasm-bindgen = "0.2.80"
+wasm-bindgen = { version="0.2.80", features = ["serde-serialize"] }
 wasm-bindgen-futures = "0.4.30"
-serde = "1"
+serde = { version = "1", features = ["derive"]}
 gloo-worker = "0.1"
+gloo-timers = "0.2.4"
 
 [dependencies.web-sys]
 version = "0.3.57"
@@ -32,6 +33,7 @@ features = [
 	"VideoEncoder",
 	"VideoEncoderInit",
 	"VideoTrack",
+	"VideoFrame",
 	"ReadableStream",
 	"ReadableStreamGetReaderOptions",
 	"ReadableStreamDefaultReader"

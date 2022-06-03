@@ -1,15 +1,21 @@
 mod msg_ctx;
 
+use std::rc::Rc;
+
 use js_sys::Array;
 use js_sys::Boolean;
 use js_sys::JsString;
 use js_sys::Reflect;
+use js_sys::global;
 use msg_ctx::{MessageContext, MessageProvider};
+use serde::Deserialize;
+use serde::Serialize;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::*;
 use yew::prelude::*;
+
 
 #[function_component(App)]
 fn app() -> Html {
@@ -57,17 +63,34 @@ fn video_reader() -> Html {
                     &MediaStreamTrackProcessorInit::new(&video_track.unchecked_into::<MediaStreamTrack>())
                 ).unwrap();
                 let reader = processor.readable().get_reader().unchecked_into::<ReadableStreamDefaultReader>();
-
-                wasm_bindgen_futures::spawn_local(async move {
+                loop {
                     console::log_1(&JsString::from("before read"));
-                    let result = JsFuture::from(reader.read()).await.unwrap();
-                    console::log_1(&result);
+                    let result = JsFuture::from(reader.read()).await.map_err(|e| {
+                        console::log_1(&JsString::from("error"));
+                        console::log_1(&e);
+                    });
+                    match result {
+                        Ok(js) => {
+                            let video_frame = Reflect::get(&js, &JsString::from("value")).unwrap().unchecked_into::<VideoFrame>();
+                            console::log_1(&JsString::from("sdfsdf"));
+                            video_frame.close();
+
+                        },
+                        Err(e) => {
+                            console::log_1(&JsString::from("result error"));
+                        }
+                    }
+                    // console::log_1(&result);
                     console::log_1(&JsString::from("after read"));
-                });
+                }
+                console::log_1(&JsString::from("after calling start pulling frames"));
+
+ 
                 // let init = VideoEncoderInit::new();
                 // let video_encoder = VideoEncoder::new();
                 // video_track.
             });
+            console::log_1(&JsString::from("closing callback"));
             || ()
         },
         (),

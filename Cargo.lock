@@ -472,6 +472,7 @@ dependencies = [
 name = "yew-video-streaming"
 version = "0.1.0"
 dependencies = [
+ "gloo-timers",
  "gloo-worker",
  "js-sys",
  "serde",
