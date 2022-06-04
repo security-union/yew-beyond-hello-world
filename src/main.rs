@@ -20,7 +20,7 @@ pub struct SerializableVideoChunk {
     pub chunk: Vec<u8>,
     pub timestamp: f64,
     pub duration: Option<f64>,
-    pub frame_type: EncodedVideoChunkType,
+    pub frame_type: EncodedVideoChunkType
 }
 
 impl Reducible for SerializableVideoChunk {
@@ -31,7 +31,7 @@ impl Reducible for SerializableVideoChunk {
             chunk: action.chunk,
             timestamp: action.timestamp,
             duration: action.duration,
-            frame_type: action.frame_type,
+            frame_type: action.frame_type
         }
         .into()
     }
@@ -49,7 +49,7 @@ pub fn VideoChunksProviderImp(props: &VideoChunksProviderProps) -> Html {
         chunk: vec![0, 0],
         timestamp: 0f64,
         duration: None,
-        frame_type: EncodedVideoChunkType::Delta,
+        frame_type: EncodedVideoChunkType::Delta
     });
 
     html! {
@@ -94,14 +94,12 @@ fn video_reader() -> Html {
                     .await
                     .unwrap()
                     .unchecked_into::<MediaStream>();
-                console::log_1(&device);
-                console::log_1(&video_element);
                 video_element.set_src_object(Some(&device));
                 // Get 1 video track
-                let video_track = device
+                let video_track = Box::new(device
                     .get_video_tracks()
                     .find(&mut |_: JsValue, _: u32, _: Array| true)
-                    .unchecked_into::<VideoTrack>();
+                    .unchecked_into::<VideoTrack>());
 
                 let error_video = Closure::wrap(Box::new(move |e: JsValue| {
                     console::log_1(&JsString::from("on error"));
@@ -109,7 +107,6 @@ fn video_reader() -> Html {
                 }) as Box<dyn FnMut(JsValue)>);
 
                 let output = Closure::wrap(Box::new(move |chunk: JsValue| {
-                    console::log_1(&JsString::from("output"));
                     let video_chunk = chunk.unchecked_into::<EncodedVideoChunk>();
                     let mut vector: Vec<u8> = vec![0; video_chunk.byte_length() as usize];
                     let chunk_data = vector.as_mut();
@@ -118,7 +115,7 @@ fn video_reader() -> Html {
                         chunk: Vec::from(chunk_data),
                         timestamp: video_chunk.timestamp(),
                         duration: video_chunk.duration(),
-                        frame_type: video_chunk.type_(),
+                        frame_type: video_chunk.type_()
                     };
                     video_context.dispatch(data_to_transfer);
                 }) as Box<dyn FnMut(JsValue)>);
@@ -128,7 +125,10 @@ fn video_reader() -> Html {
                     output.as_ref().unchecked_ref(),
                 );
                 let video_encoder = VideoEncoder::new(&init).unwrap();
-                let video_encoder_config = VideoEncoderConfig::new("vp8", 640u32, 480u32);
+                let settings = &video_track.clone().unchecked_into::<MediaStreamTrack>().get_settings();
+                let width = Reflect::get(&settings, &JsString::from("width")).unwrap().as_f64().unwrap();
+                let height = Reflect::get(&settings, &JsString::from("height")).unwrap().as_f64().unwrap();
+                let video_encoder_config = VideoEncoderConfig::new("vp8", height as u32, width as u32);
                 video_encoder.configure(&video_encoder_config);
 
                 let processor =
@@ -141,7 +141,6 @@ fn video_reader() -> Html {
                     .get_reader()
                     .unchecked_into::<ReadableStreamDefaultReader>();
                 loop {
-                    console::log_1(&JsString::from("before read"));
                     let result = JsFuture::from(reader.read()).await.map_err(|e| {
                         console::log_1(&JsString::from("error"));
                         console::log_1(&e);
@@ -151,7 +150,6 @@ fn video_reader() -> Html {
                             let video_frame = Reflect::get(&js, &JsString::from("value"))
                                 .unwrap()
                                 .unchecked_into::<VideoFrame>();
-                            console::log_1(&JsString::from("sdfsdf"));
                             video_encoder.encode(&video_frame);
                             video_frame.close();
                         }
@@ -159,12 +157,8 @@ fn video_reader() -> Html {
                             console::log_1(&JsString::from("result error"));
                         }
                     }
-                    // console::log_1(&result);
-                    console::log_1(&JsString::from("after read"));
                 }
-                console::log_1(&JsString::from("after calling start pulling frames"));
             });
-            console::log_1(&JsString::from("closing callback"));
             || ()
         },
         (),
@@ -190,28 +184,22 @@ fn video_renderer() -> Html {
         }) as Box<dyn FnMut(JsValue)>);
 
         let output = Closure::wrap(Box::new(move |chunk: JsValue| {
-            console::log_1(&JsString::from("output decoded"));
             let video_chunk = chunk.unchecked_into::<HtmlImageElement>();
             let render_canvas = window()
-                .unwrap()
-                .document()
-                .unwrap()
-                .get_element_by_id("render")
-                .unwrap()
-                .unchecked_into::<HtmlCanvasElement>();
-
-            let ctx = render_canvas
-                .get_context("2d")
-                .unwrap()
-                .unwrap()
-                .unchecked_into::<CanvasRenderingContext2d>();
-            ctx.draw_image_with_html_image_element(&video_chunk, 0.0, 0.0)
-                .unwrap();
+                    .unwrap()
+                    .document()
+                    .unwrap()
+                    .get_element_by_id("render")
+                    .unwrap()
+                    .unchecked_into::<HtmlCanvasElement>();
+            let ctx = render_canvas.get_context("2d").unwrap().unwrap().unchecked_into::<CanvasRenderingContext2d>();
+            ctx.draw_image_with_html_image_element(&video_chunk, 0.0, 0.0).unwrap();
+            video_chunk.unchecked_into::<VideoFrame>().close();
         }) as Box<dyn FnMut(JsValue)>);
 
         let video_decoder_init = VideoDecoderInit::new(
-            error_video.as_ref().unchecked_ref(),
-            output.as_ref().unchecked_ref(),
+            error_video.as_ref().unchecked_ref(), 
+            output.as_ref().unchecked_ref()
         );
         error_video.forget();
         output.forget();
@@ -229,6 +217,7 @@ fn video_renderer() -> Html {
 
     html!(
         <div>
+            {"video renderer"}
              <canvas id="render"></canvas>
         </div>
     )

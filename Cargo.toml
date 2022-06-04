@@ -30,6 +30,7 @@ features = [
 	"EncodedVideoChunkMetadata",
 	"HtmlCanvasElement",
 	"HtmlImageElement",
+	"MediaTrackSettings",
 	"MediaStreamConstraints",
 	"MediaStreamTrack",
 	"MediaStreamTrackProcessor", 
