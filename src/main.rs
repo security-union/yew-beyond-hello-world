@@ -20,7 +20,7 @@ pub struct SerializableVideoChunk {
     pub chunk: Vec<u8>,
     pub timestamp: f64,
     pub duration: Option<f64>,
-    pub frame_type: EncodedVideoChunkType
+    pub frame_type: EncodedVideoChunkType,
 }
 
 impl Reducible for SerializableVideoChunk {
@@ -31,7 +31,7 @@ impl Reducible for SerializableVideoChunk {
             chunk: action.chunk,
             timestamp: action.timestamp,
             duration: action.duration,
-            frame_type: action.frame_type
+            frame_type: action.frame_type,
         }
         .into()
     }
@@ -49,7 +49,7 @@ pub fn VideoChunksProviderImp(props: &VideoChunksProviderProps) -> Html {
         chunk: vec![0, 0],
         timestamp: 0f64,
         duration: None,
-        frame_type: EncodedVideoChunkType::Delta
+        frame_type: EncodedVideoChunkType::Delta,
     });
 
     html! {
@@ -63,10 +63,8 @@ pub fn VideoChunksProviderImp(props: &VideoChunksProviderProps) -> Html {
 fn app() -> Html {
     html!(
         <VideoChunksProvider>
-            <MessageProvider>
-                <VideoReader/>
-                <VideoRenderer/>
-            </MessageProvider>
+            <VideoReader/>
+            <VideoRenderer/>
         </VideoChunksProvider>
     )
 }
@@ -120,7 +118,7 @@ fn video_reader() -> Html {
                         chunk: Vec::from(chunk_data),
                         timestamp: video_chunk.timestamp(),
                         duration: video_chunk.duration(),
-                        frame_type: video_chunk.type_()
+                        frame_type: video_chunk.type_(),
                     };
                     video_context.dispatch(data_to_transfer);
                 }) as Box<dyn FnMut(JsValue)>);
@@ -171,25 +169,16 @@ fn video_reader() -> Html {
         },
         (),
     );
-
-    let msg_ctx = use_context::<MessageContext>().unwrap();
-    let onclick = Callback::from(move |_| msg_ctx.dispatch("Message Received.".to_string()));
-
     html!(
         <div>
             {"video reader"}
             <video autoplay={true} id="webcam"></video>
-            <button {onclick}>
-                {"PRESS ME"}
-            </button>
         </div>
     )
 }
 
 #[function_component(VideoRenderer)]
 fn video_renderer() -> Html {
-    let msg_ctx = use_context::<MessageContext>().unwrap();
-    let message = msg_ctx.inner.to_owned();
     let video_ctx = use_context::<UseReducerHandle<SerializableVideoChunk>>().unwrap();
     let video_message = video_ctx.chunk.to_owned();
     let video_decoder: UseStateHandle<Option<VideoDecoder>> = use_state(|| None);
@@ -202,13 +191,30 @@ fn video_renderer() -> Html {
 
         let output = Closure::wrap(Box::new(move |chunk: JsValue| {
             console::log_1(&JsString::from("output decoded"));
-            let video_chunk = chunk.unchecked_into::<VideoFrame>();
+            let video_chunk = chunk.unchecked_into::<HtmlImageElement>();
+            let render_canvas = window()
+                .unwrap()
+                .document()
+                .unwrap()
+                .get_element_by_id("render")
+                .unwrap()
+                .unchecked_into::<HtmlCanvasElement>();
+
+            let ctx = render_canvas
+                .get_context("2d")
+                .unwrap()
+                .unwrap()
+                .unchecked_into::<CanvasRenderingContext2d>();
+            ctx.draw_image_with_html_image_element(&video_chunk, 0.0, 0.0)
+                .unwrap();
         }) as Box<dyn FnMut(JsValue)>);
 
         let video_decoder_init = VideoDecoderInit::new(
-            error_video.as_ref().unchecked_ref(), 
-            output.as_ref().unchecked_ref()
+            error_video.as_ref().unchecked_ref(),
+            output.as_ref().unchecked_ref(),
         );
+        error_video.forget();
+        output.forget();
         let local_video_decoder = VideoDecoder::new(&video_decoder_init).unwrap();
         let video_config = VideoDecoderConfig::new("vp8");
         local_video_decoder.configure(&video_config);
@@ -221,12 +227,9 @@ fn video_renderer() -> Html {
         decoder.decode(&encoded_video_chunk);
     }
 
-
     html!(
         <div>
-            {"video renderer"}
-             <h1>{ message }</h1>
-             <canvas></canvas>
+             <canvas id="render"></canvas>
         </div>
     )
 }

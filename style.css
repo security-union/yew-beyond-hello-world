@@ -1,4 +1,7 @@
 #webcam {
-    width: 680px;
-    height: 480px;
+    width: 200px;
+}
+
+#render {
+    width: 200px;
 }
