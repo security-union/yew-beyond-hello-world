@@ -1,7 +1,34 @@
+html {
+    background-color: black;    
+}
+
 #webcam {
-    width: 200px;
+    width: 100%;
 }
 
 #render {
-    /* width: 200px; */
+    width: 100%;
+}
+
+#video-consumer {
+    background-color: #0057b7;
+    padding: 10px;
+}
+
+#video-producer {
+    background-color: #ffd700;
+    padding: 10px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+h3 {
+    color: white;
+}
+
+#video-producer > h3 {
+    color: black;
 }

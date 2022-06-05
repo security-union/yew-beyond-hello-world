@@ -12,6 +12,8 @@ use web_sys::*;
 use yew::prelude::*;
 
 static VIDEO_CODEC: &str = "av01.0.01M.08";
+const VIDEO_WIDTH: u32 = 640u32;
+const VIDEO_HEIGHT: u32 = 480u32;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct SerializableVideoChunk {
@@ -130,16 +132,10 @@ fn video_producer() -> Html {
                     .clone()
                     .unchecked_into::<MediaStreamTrack>()
                     .get_settings();
-                let width = Reflect::get(&settings, &JsString::from("width"))
-                    .unwrap()
-                    .as_f64()
-                    .unwrap();
-                let height = Reflect::get(&settings, &JsString::from("height"))
-                    .unwrap()
-                    .as_f64()
-                    .unwrap();
+                settings.width(VIDEO_WIDTH);
+                settings.height(VIDEO_HEIGHT);
                 let video_encoder_config =
-                    VideoEncoderConfig::new(&VIDEO_CODEC, height as u32, width as u32);
+                    VideoEncoderConfig::new(&VIDEO_CODEC, VIDEO_HEIGHT, VIDEO_WIDTH);
                 video_encoder.configure(&video_encoder_config);
 
                 let processor =
@@ -196,10 +192,6 @@ fn video_consumer() -> Html {
             let chunk = Box::new(original_chunk);
             let video_chunk = chunk.clone().unchecked_into::<HtmlImageElement>();
             let width = Reflect::get(&chunk.clone(), &JsString::from("codedWidth"))
-                .unwrap()
-                .as_f64()
-                .unwrap();
-            let height = Reflect::get(&chunk.clone(), &JsString::from("codedHeight"))
                 .unwrap()
                 .as_f64()
                 .unwrap();
