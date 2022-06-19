@@ -1,5 +1,19 @@
-html {
-    background-color: black;    
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));}
+
+.consumer {
+    background-color: #0057b7;
+    padding: 10px;
+}
+
+.producer {
+    background-color: #ffd700;
+    padding: 10px;
+}
+
+.consumer > h3 {
+    color: white;
 }
 
 #webcam {
@@ -8,27 +22,4 @@ html {
 
 #render {
     width: 100%;
-}
-
-#video-consumer {
-    background-color: #0057b7;
-    padding: 10px;
-}
-
-#video-producer {
-    background-color: #ffd700;
-    padding: 10px;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-}
-
-h3 {
-    color: white;
-}
-
-#video-producer > h3 {
-    color: black;
 }
