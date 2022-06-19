@@ -11,6 +11,12 @@ This technology will change web development!!
 
 We use js-sys, web-sys, and friends to power this web application.
 
+# How to run?
+
+```
+RUSTFLAGS=--cfg=web_sys_unstable_apis trunk serve
+```
+
 # YouTube Video
 
 https://youtu.be/In09Lgqxp6Y
