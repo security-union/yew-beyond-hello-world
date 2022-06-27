@@ -19,7 +19,7 @@ RUSTFLAGS=--cfg=web_sys_unstable_apis trunk serve
 
 # YouTube Video
 
-https://youtu.be/In09Lgqxp6Y
+https://youtu.be/NTcvWDQ1mMI
 
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/In09Lgqxp6Y/maxresdefault.jpg)](https://www.youtube.com/watch?v=In09Lgqxp6Y "YouTube video")
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/NTcvWDQ1mMI/maxresdefault.jpg)](https://www.youtube.com/watch?v=NTcvWDQ1mMI "YouTube video")
 
